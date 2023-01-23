@@ -90,13 +90,42 @@ def respond(sock):
     log.info("Request was {}\n***\n".format(request))
 
     parts = request.split()
+    valid_type = ['.html', '.css']
+    options = get_options()
     if len(parts) > 1 and parts[0] == "GET":
-        transmit(STATUS_OK, sock)
-        transmit(CAT, sock)
+        if '..' in parts[1] or '~' in parts[1]:
+            send_code('403', sock) # Forbidden request
+        
+        else:
+            for type in valid_type:
+                if type in parts[1]:
+                    if type == '.css':
+                        try:
+                            css = open(options.DOCROOT + parts[1])
+                            
+                            transmit(STATUS_OK, sock)
+                            transmit(css.read(), sock)
+                            
+                        except FileNotFoundError:
+                            send_code('404', sock) # File does not exist
+                    
+                    elif type == '.html':
+                        try:
+                            html = open(options.DOCROOT + parts[1])
+                            
+                            transmit(STATUS_OK, sock)
+                            transmit(html.read(), sock)
+                
+                        except FileNotFoundError:
+                            send_code('404', sock) # File does not exist
+                    
+                    break # Response doesn't handle more than one request, and we've just serviced a request (type was either .css or .html)
+                      
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
         transmit("\nI don't handle this request: {}\n".format(request), sock)
+    
 
     sock.shutdown(socket.SHUT_RDWR)
     sock.close()
@@ -134,6 +163,33 @@ def get_options():
 
     return options
 
+
+# Helper function 
+def send_code(code, sock):
+    if code == '403':
+        forbidden_html = """
+                            <html><head><title>Forbidden</title></head>
+                            <body>
+                            <h1>This is a forbidden request.</h1>
+                            <p>The string '..' or '~' is forbidden.</p>
+                            </body>
+                            </html>
+                            """
+        transmit(STATUS_FORBIDDEN, sock)
+        transmit(forbidden_html, sock)
+        
+    elif code == '404':
+        not_found_html = """
+                            <html><head><title>Not Found</title></head>
+                            <body>
+                            <h1>This page does not exist.</h1>
+                            <p>The data for this page does not exist in the docroot.</p>
+                            </body>
+                            </html>
+                            """
+        transmit(STATUS_NOT_FOUND, sock)
+        transmit(not_found_html, sock)
+        
 
 def main():
     options = get_options()

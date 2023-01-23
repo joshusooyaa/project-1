@@ -1,40 +1,22 @@
-# UOCIS322 - Project 1 #
+Author: Josh Sawyer
+Contact: jsawyer2@uoregon.edu
 
-This project will get you started with creating a simple webpage server.
+This is a simple server that responds to "GET" requests from the client side, therefore no other requests
+are implemented, and an HTTP/1.0 404 Not Implemented is transmitted if other requests are sent.
 
-## Getting started
+The server accesses files using the docroot (the docroot is path to the directory the files exist in) - this 
+can be changed using credentials-skel.ini. The port number is also changed through credentials-skel.ini.
 
-Directory structure:
+pageserver.py - 
+The server serves only .html and .css files. When a GET request is sent for a file that exists in the docroot
+the server will first send a 200 code (implying a successful request) and then send the file that it found 
+within the docroot. If there is a link to a css file, it will attempt to find it in the docroot as well (a
+second request is sent for that css file) - if it is found, it'll link the css to the html, otherwise a 404
+response is sent (in regards to the css file) and then the html file is displayed without the linked css. If
+a request for just .css is sent, it'll display the raw css (given that the .css exists in the docroot (path)).
 
-* the "pages" (HTML files and their assets) will be located in DOCROOT. For this project that location is the `pages/` directory. Make sure you specify this in your `credentials.ini`!
+If a file does not exist, in which the client tried accessing, a 404 response is sent, implying the data
+for this page wasn't found. Additionally, if a client sends a GET request with the string '..' or '~' 
+a 403 response is sent implying that this is a forbidden request and the page cannot be accessed.
 
-* Everything that's located in `pageserver/`. That consists of a Python application (`pageserver.py`) that starts listening at a specified port and handles requests. This is the key file you'll be editing for this project.
-
-* There's a configuration parser, much like the one seen in [project-0](https://github.com/UO-CIS322/project-0), but a more detailed version. It not only looks for your `credentials.ini` file, both in `pageserver/` and the parent directory and falls back to `default.ini` if missing, it also allows you to override those settings through CLI. These will be discussed in the lab.
-
-* `Makefile` here refers to the two scripts provided: `start.sh` and `stop.sh`. The former starts the server, by calling `pageserver.py`. It will also store its PID (process id), in order to kill it later through `stop.sh`. However, if you notice that it failed to do so, you can kill it manually by looking up the PID.
-
-## Tasks
-
-The goal of this project is to implement a "file checking" logic for the existing server. Currently, if you set it up and start the server, it will just serve a page with a cat figure. What is expected is for the server to handle the requests as follows:
-
-* If a file exists in `pages/` (i.e. `trivia.html`, any name, any extention or format) exists, transmit `200 OK` header followed by that file. If the file doesn't exist, transmit `404 Not Found` error code in the header along with a message in the body explaining further. If a request includes illegal characters (`..` or `~`), the response should be a `403 Forbidden` error, again with a message in the body explaining it.
-
-* Update `README` with your name, info, and a brief description of the project.
-
-* You will submit your credentials.ini in Canvas. It should include your name and repo URL.
-
-
-## Grading Rubric
-
-* If everything works as expected, 100 will be assigned.
-* If existing pages and files are NOT handled correctly, 30 points will be docked.
-* For each of the errors not handled correctly (403, and 404), 15 points will be docked.
-* If `README.md` is not updated with your name and info, 10 points will be docked.
-* If `credentials.ini` is commited, 10 points will be docked.
-* If the repo clones, but `make install` or `make run` throws an error, 10 will be assigned.
-* If `credentials.ini` is incorrect or not submitted, 0 will be assigned.
-
-## Authors
-
-Michal Young, Ram Durairajan.
+It can be run using 'make start' and you can stop it using 'make stop'
